@@ -9,11 +9,11 @@ import (
 
 //déclaration de la structure Sommet
 type Sommet struct {
-	poids float64
+	poids float64			//Distance entre deux sommets
 	dist float64 			//Distance du départ au sommet
-	id int
-	listeVoisins []int
-	pred int
+	id int					//Identifiant du sommet
+	listeVoisins []int		//Listes des sommets voisins
+	pred int				//Identifiant du sommet précédent dans le déroulé de l'algorithme 
 
 }
 
@@ -27,9 +27,9 @@ func dijstra(graph [][]int, depart int, arrivee int) {
 	for i := 0; i<len(graph); i++{
 		listeSommets[i].poids = math.Inf(1)					//assigne un poids infini à chaque sommet
 		listeSommets[i].id = i
-		if listeSommets[i].poids == float64(depart) {
+		/*if listeSommets[i].poids == float64(depart) {			//listeSommets[i].id plutôt que listeSommets[i].poids non ? Obligé de mettre float64 du coup ?
 			listeSommets[i].poids = 0							//assigne un poids nul au sommet de départ
-		}
+		}*/
 		for j := 0; j<len(graph); j++{
 			if graph[i][j] != 0{
 				listeSommets[i].listeVoisins = append (listeSommets[i].listeVoisins, j)
@@ -37,6 +37,7 @@ func dijstra(graph [][]int, depart int, arrivee int) {
 		}
 		fmt.Println(listeSommets[i].listeVoisins)
 	}
+	listeSommets[depart].poids = 0
 
 	//Liste des sommets à traiter
 	var listeSommetsATraiter = listeSommets
@@ -112,7 +113,7 @@ func main() {
 		}
 		fmt.Println("")
 	}
-	dijstra(grapheNoeudsOriginal, 1, 7)
+	dijstra(grapheNoeudsOriginal, 1, 5)
 }
 
 func remove(slice []Sommet, s int) []Sommet {
