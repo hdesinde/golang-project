@@ -23,7 +23,7 @@ func remove(slice []Sommet, s int) []Sommet {
 }
 
 // un noeud est représenté par une matrice d'adjacence (id : numéro colonne/ligne)
-func dijstra(graph [][]int, depart int, arrivee int) {
+func dijkstra(graph [][]int, depart int, arrivee int) {
 
 //Initialisation
 
@@ -81,20 +81,28 @@ func dijstra(graph [][]int, depart int, arrivee int) {
 				indexListeATraiter = i					//important de conserver l'index du sommet dans la liste listeSommetsATraiter, pour y accéder plus tard
 			}
 		}
-		fmt.Printf("min : %d\n", min)
+		fmt.Printf("min : %e\n", min)
 		fmt.Printf("s1 : %d\n", s1)
 
 		//Mise à jour des distances 
 		fmt.Println("Avant la boucle")
-		for i := 0; i<len(listeSommets[s1].listeVoisins); i++{
+		sommet := listeSommets[s1]
+		fmt.Printf("listeVoisins : %v\n", sommet.listeVoisins)
+		fmt.Printf("len(listeVoisins) : %d\n", len(sommet.listeVoisins))
+		for i := 0; i<len(sommet.listeVoisins); i++{
+			fmt.Printf("i : %d\n", i)
 			s2 := listeSommets[s1].listeVoisins[i]
-			if listeSommets[s2].dist > listeSommets[s1].dist + listeSommets[s1].poids[s2]{ 		//si la distance de début à s2 est plus grande que celle de début à s1 + celle de s1 à s2
-				listeSommets[s2].dist = listeSommets[s1].dist + listeSommets[s1].poids[s2]		//alors on prend ce nouveau chemin qui est plus court
-				listeSommets[s2].pred = s1														//et on note par où on passe
+			if listeSommets[s2].dist > sommet.dist + sommet.poids[s2]{ 							//si la distance de début à s2 est plus grande que celle de début à s1 + celle de s1 à s2
+				listeSommets[s2].dist = sommet.dist + sommet.poids[s2]							//alors on prend ce nouveau chemin qui est plus court
+				listeSommets[s2].pred = sommet.id												//et on note par où on passe
 				listeSommetsATraiter[indexListeATraiter] = listeSommets[s2]						//on actualise aussi notre liste de sommets à traiter
-				fmt.Printf("pred listeSommets : %d\n", listeSommets[s2].pred)
-				fmt.Printf("pred listeSommetsATraiter : %d\n", listeSommetsATraiter[indexListeATraiter].pred)
+				listeSommets[s1] = sommet														//je ne comprends pas pourquoi, mais si je ne mets pas ça, listeSommet[s1] est modifié à chaque itération... Si quelqu'un a une explication, je suis preneur
 			}
+			fmt.Printf("s1 : %d\n", s1)
+			fmt.Printf("s2 : %d\n", s2)
+			fmt.Printf("pred s2 : %d\n", listeSommets[s2].pred)
+			fmt.Printf("dist s2 : %e\n", listeSommets[s2].dist)
+			fmt.Printf("dist s1 : %e\n", listeSommets[s1].dist)
 		}
 		fmt.Println("Après la boucle")
 			
@@ -108,8 +116,8 @@ func dijstra(graph [][]int, depart int, arrivee int) {
 
 //Traçage du chemin
 
-	//meilleur chemin
-	var bestWay = make([]int, len(listeSommets))
+	//meilleur chemin de l'arrivée au départ
+	var bestWayUpsideDown []int
 	
 	//déclaration des variables utiles
 	s := arrivee
@@ -117,7 +125,7 @@ func dijstra(graph [][]int, depart int, arrivee int) {
 
 	//en partant de l'arrivée, nous remontons le chemin jusqu'au départ par les prédécesseurs
 	for i := 0; i<fin; i++{
-		bestWay[i] = s
+		bestWayUpsideDown = append(bestWayUpsideDown, s)
 
 		if listeSommets[s].pred != -1{ 		//si un sommet n'a pas de prédécesseur, nous retournons une erreur
 			s = listeSommets[s].pred
@@ -126,14 +134,22 @@ func dijstra(graph [][]int, depart int, arrivee int) {
 			break
 		}
 
-		fmt.Printf("Chemin le plus court : %v\n", bestWay)
-
 		//Lorsqu'on arrive au départ, on sort de la boucle
 		if s == depart{
+			bestWayUpsideDown = append(bestWayUpsideDown, s) 		//on ajoute quand même le dernier sommet, i.e le sommet de départ
 			fin = -1
 		}
 	}
-	fmt.Printf("Finalement, le chemin le plus court est : %v\n", bestWay)
+	
+	//finalement, on remet le chemin à l'endroit
+	var bestWay = make([]int, len(bestWayUpsideDown))
+
+	for i := 0; i<len(bestWay); i++{
+		bestWay[i] = bestWayUpsideDown[len(bestWayUpsideDown)-1-i]
+	}
+	fmt.Println("\n")
+	fmt.Printf("Le chemin le plus court est : %v\n", bestWay)
+	fmt.Printf("La distance parcourue est : %e\n", listeSommets[arrivee].dist)
 
 	/*for {
 		fmt.Println(listeSommetsATraiter)
@@ -194,5 +210,5 @@ func main() {
 		}
 		fmt.Println("")
 	}
-	dijstra(grapheNoeudsOriginal, 1, 4)
+	dijkstra(grapheNoeudsOriginal, 0, 4)
 }
