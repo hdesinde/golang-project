@@ -4,6 +4,12 @@ import (
 	"fmt"
 	"math/rand"
 	"math"
+	//"bufio"
+	//"io"
+	//"os"
+	"io/ioutil"
+	"strings"
+	"strconv"
 )
 
 
@@ -55,7 +61,7 @@ func dijkstra(graph [][]int, depart int, arrivee int) {
 	var listeSommetsATraiter = listeSommets
 
 	//Liste des sommets déjà traités
-	//var listeSommetsDejaTraites = make([]Sommet, 0)
+	//var listeSommetsTraites = make([]Sommet, len(listeSommets))
 
 	//ID sommet traité actuellement
 	//var idX	int	//id point x
@@ -86,24 +92,29 @@ func dijkstra(graph [][]int, depart int, arrivee int) {
 
 		//Mise à jour des distances 
 		fmt.Println("Avant la boucle")
-		sommet := listeSommets[s1]
-		fmt.Printf("listeVoisins : %v\n", sommet.listeVoisins)
-		fmt.Printf("len(listeVoisins) : %d\n", len(sommet.listeVoisins))
-		for i := 0; i<len(sommet.listeVoisins); i++{
+		sommet1 := listeSommets[s1]
+		fmt.Printf("listeVoisins : %v\n", sommet1.listeVoisins)
+		fmt.Printf("len(listeVoisins) : %d\n", len(sommet1.listeVoisins))
+		for i := 0; i<len(sommet1.listeVoisins); i++{
 			fmt.Printf("i : %d\n", i)
-			s2 := listeSommets[s1].listeVoisins[i]
-			if listeSommets[s2].dist > sommet.dist + sommet.poids[s2]{ 							//si la distance de début à s2 est plus grande que celle de début à s1 + celle de s1 à s2
-				listeSommets[s2].dist = sommet.dist + sommet.poids[s2]							//alors on prend ce nouveau chemin qui est plus court
-				listeSommets[s2].pred = sommet.id												//et on note par où on passe
-				listeSommetsATraiter[indexListeATraiter] = listeSommets[s2]						//on actualise aussi notre liste de sommets à traiter
-				listeSommets[s1] = sommet														//je ne comprends pas pourquoi, mais si je ne mets pas ça, listeSommet[s1] est modifié à chaque itération... Si quelqu'un a une explication, je suis preneur
+
+			s2 := sommet1.listeVoisins[i]
+			sommet2 := listeSommets[s2]
+
+			if sommet2.dist > sommet1.dist + sommet1.poids[s2]{ 		//si la distance de début à s2 est plus grande que celle de début à s1 + celle de s1 à s2
+				sommet2.dist = sommet1.dist + sommet1.poids[s2]			//alors on prend ce nouveau chemin qui est plus court
+				sommet2.pred = sommet1.id								//et on note par où on passe
+				listeSommetsATraiter[indexListeATraiter] = sommet2		//on actualise aussi notre liste de sommets à traiter
+				listeSommets[s2] = sommet2
 			}
+
 			fmt.Printf("s1 : %d\n", s1)
 			fmt.Printf("s2 : %d\n", s2)
 			fmt.Printf("pred s2 : %d\n", listeSommets[s2].pred)
 			fmt.Printf("dist s2 : %e\n", listeSommets[s2].dist)
-			fmt.Printf("dist s1 : %e\n", listeSommets[s1].dist)
 		}
+		listeSommets[s1] = sommet1												//je ne comprends pas pourquoi, mais si je ne mets pas ça, listeSommet[s1] est modifié à chaque itération... Si quelqu'un a une explication, je suis preneur
+		fmt.Printf("dist s1 : %e\n", listeSommets[s1].dist)
 		fmt.Println("Après la boucle")
 			
 		listeSommetsATraiter = remove(listeSommetsATraiter, indexListeATraiter)					//enfin, on peut supprimer le sommet sur lequel nous nous trouvons de la liste des sommets encore à traiter
@@ -115,6 +126,8 @@ func dijkstra(graph [][]int, depart int, arrivee int) {
 
 
 //Traçage du chemin
+
+	fmt.Printf("Liste des sommets : %v\n", listeSommets)
 
 	//meilleur chemin de l'arrivée au départ
 	var bestWayUpsideDown []int
@@ -133,9 +146,11 @@ func dijkstra(graph [][]int, depart int, arrivee int) {
 			fmt.Println("Erreur, il n'y a pas de prédécesseur disponible...")
 			break
 		}
+		fmt.Printf("L'avancée du chemin le plus court est : %v\n", bestWayUpsideDown)
+		fmt.Printf("La distance parcourue jusqu'au sommet traité est : %e\n", listeSommets[s].dist)
 
 		//Lorsqu'on arrive au départ, on sort de la boucle
-		if s == depart{
+		if s == depart || len(bestWayUpsideDown)>len(listeSommets){
 			bestWayUpsideDown = append(bestWayUpsideDown, s) 		//on ajoute quand même le dernier sommet, i.e le sommet de départ
 			fin = -1
 		}
@@ -184,6 +199,32 @@ func dijkstra(graph [][]int, depart int, arrivee int) {
 	}*/
 }
 
+func readFile(fn string) (err error){
+	file, err := ioutil.ReadFile("graphe.txt")
+	if err != nil{
+		fmt.Println(err)
+	}
+
+	graphestr := string(file)
+	//fmt.Println(graphestr)
+
+	grapheln := strings.Split(graphestr, "\n")
+	nbSommets := len(grapheln)-1
+	for i := 0; i<nbSommets; i++{
+		graphenb := strings.Split(grapheln[i], "	")
+		for j := 0; j<nbSommets; j++{
+			fmt.Printf("Str :%v", graphenb[j])
+			str := string(graphenb[j])
+			graphenbInt, _ := strconv.Atoi(str)
+			fmt.Printf("Valeur : %d\n", graphenbInt)
+		}
+	}
+	fmt.Println(nbSommets)
+	
+
+	return
+}
+
 func main() {
 	const nbSommets int = 5
 
@@ -210,5 +251,8 @@ func main() {
 		}
 		fmt.Println("")
 	}
+	//grapheNoeuds := 
+	readFile("graphe.txt")
+
 	dijkstra(grapheNoeudsOriginal, 0, 4)
 }
