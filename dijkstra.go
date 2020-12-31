@@ -36,18 +36,31 @@ func dijkstra(graph [][]int, depart int, arrivee int) {
 	//Liste des sommets
 	var listeSommets = make([]Sommet, len(graph))
 
+	//Liste des sommets à traiter
+	var listeSommetsATraiter = make([]Sommet, len(graph))
+
 	//initialisation des attributs de chaque sommet
 	for i := 0; i<len(graph); i++{
 		listeSommets[i].dist = math.Inf(1)					//assigne une distance infinie à chaque sommet
 		listeSommets[i].id = i
 		listeSommets[i].poids = make([]float64, len(graph))	//il est nécessaire de créer toutes les cases du tableau de poids avant, car les indices seront importants
 		listeSommets[i].pred = -1
+
+		//on initialise de la même façon la liste de sommets à traiter
+		listeSommetsATraiter[i].dist = math.Inf(1)
+		listeSommetsATraiter[i].id = i
+		listeSommetsATraiter[i].poids = make([]float64, len(graph))
+		listeSommetsATraiter[i].pred = -1
 	}
 	for i := 0; i<len(graph); i++{
 		for j := 0; j<len(graph); j++{
 			if graph[i][j] != 0{
 				listeSommets[i].listeVoisins = append(listeSommets[i].listeVoisins, j)	//création d'un tableau de voisins
 				listeSommets[i].poids[j] = float64(graph[i][j])							//référencement du poids de chaque sommet avec ses voisins
+				
+				//de même avec la liste de sommets à traiter
+				listeSommetsATraiter[i].listeVoisins = append(listeSommetsATraiter[i].listeVoisins, j)
+				listeSommetsATraiter[i].poids[j] = float64(graph[i][j])
 			}
 		}
 		fmt.Printf("Liste des voisins de %d", i)
@@ -56,9 +69,8 @@ func dijkstra(graph [][]int, depart int, arrivee int) {
 		fmt.Printf(" : %v\n", listeSommets[i].poids)
 	}
 	listeSommets[depart].dist = 0			//on assigne une distance nulle au sommet de départ 
-
-	//Liste des sommets à traiter
-	var listeSommetsATraiter = listeSommets
+	listeSommetsATraiter[depart].dist = 0
+	fmt.Println("")
 
 	//Liste des sommets déjà traités
 	//var listeSommetsTraites = make([]Sommet, len(listeSommets))
@@ -92,20 +104,25 @@ func dijkstra(graph [][]int, depart int, arrivee int) {
 
 		//Mise à jour des distances 
 		fmt.Println("Avant la boucle")
-		sommet1 := listeSommets[s1]
-		fmt.Printf("listeVoisins : %v\n", sommet1.listeVoisins)
-		fmt.Printf("len(listeVoisins) : %d\n", len(sommet1.listeVoisins))
-		for i := 0; i<len(sommet1.listeVoisins); i++{
+		fmt.Printf("listeVoisins : %v\n", listeSommets[s1].listeVoisins)
+		fmt.Printf("len(listeVoisins) : %d\n", len(listeSommets[s1].listeVoisins))
+		for i := 0; i<len(listeSommets[s1].listeVoisins); i++{
 			fmt.Printf("i : %d\n", i)
 
-			s2 := sommet1.listeVoisins[i]
-			sommet2 := listeSommets[s2]
+			s2 := listeSommets[s1].listeVoisins[i]
 
-			if sommet2.dist > sommet1.dist + sommet1.poids[s2]{ 		//si la distance de début à s2 est plus grande que celle de début à s1 + celle de s1 à s2
-				sommet2.dist = sommet1.dist + sommet1.poids[s2]			//alors on prend ce nouveau chemin qui est plus court
-				sommet2.pred = sommet1.id								//et on note par où on passe
-				listeSommetsATraiter[indexListeATraiter] = sommet2		//on actualise aussi notre liste de sommets à traiter
-				listeSommets[s2] = sommet2
+			if listeSommets[s2].dist > listeSommets[s1].dist + listeSommets[s1].poids[s2]{ 		//si la distance de début à s2 est plus grande que celle de début à s1 + celle de s1 à s2
+				listeSommets[s2].dist = listeSommets[s1].dist + listeSommets[s1].poids[s2]		//alors on prend ce nouveau chemin qui est plus court
+				listeSommets[s2].pred = listeSommets[s1].id										//et on note par où on passe
+
+				//on actualise aussi notre liste de sommets à traiter
+				for j := 0; j < len(listeSommets); j++{
+					if listeSommetsATraiter[j].id == s2{							//recherche de la position du sommet à modifier dans la liste de sommets à traiter
+						listeSommetsATraiter[j].dist = listeSommets[s2].dist
+						listeSommetsATraiter[j].pred = listeSommets[s2].pred
+						break
+					}
+				}
 			}
 
 			fmt.Printf("s1 : %d\n", s1)
@@ -113,11 +130,10 @@ func dijkstra(graph [][]int, depart int, arrivee int) {
 			fmt.Printf("pred s2 : %d\n", listeSommets[s2].pred)
 			fmt.Printf("dist s2 : %e\n", listeSommets[s2].dist)
 		}
-		listeSommets[s1] = sommet1												//je ne comprends pas pourquoi, mais si je ne mets pas ça, listeSommet[s1] est modifié à chaque itération... Si quelqu'un a une explication, je suis preneur
-		fmt.Printf("dist s1 : %e\n", listeSommets[s1].dist)
-		fmt.Println("Après la boucle")
-			
-		listeSommetsATraiter = remove(listeSommetsATraiter, indexListeATraiter)					//enfin, on peut supprimer le sommet sur lequel nous nous trouvons de la liste des sommets encore à traiter
+		fmt.Println("Après la boucle\n")
+		
+		//enfin, on peut supprimer le sommet sur lequel nous nous trouvons de la liste des sommets encore à traiter
+		listeSommetsATraiter = remove(listeSommetsATraiter, indexListeATraiter)
 
 		if len(listeSommetsATraiter) == 0 {				//permet de sortir de la boucle lorsque la liste des sommets à traiter est vide
 			break
@@ -146,8 +162,6 @@ func dijkstra(graph [][]int, depart int, arrivee int) {
 			fmt.Println("Erreur, il n'y a pas de prédécesseur disponible...")
 			break
 		}
-		fmt.Printf("L'avancée du chemin le plus court est : %v\n", bestWayUpsideDown)
-		fmt.Printf("La distance parcourue jusqu'au sommet traité est : %e\n", listeSommets[s].dist)
 
 		//Lorsqu'on arrive au départ, on sort de la boucle
 		if s == depart || len(bestWayUpsideDown)>len(listeSommets){
