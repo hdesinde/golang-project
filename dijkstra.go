@@ -4,9 +4,6 @@ import (
 	"fmt"
 	"math/rand"
 	"math"
-	//"bufio"
-	//"io"
-	//"os"
 	"io/ioutil"
 	"strings"
 	"strconv"
@@ -71,13 +68,6 @@ func dijkstra(graph [][]int, depart int, arrivee int) {
 	listeSommets[depart].dist = 0			//on assigne une distance nulle au sommet de départ 
 	listeSommetsATraiter[depart].dist = 0
 	fmt.Println("")
-
-	//Liste des sommets déjà traités
-	//var listeSommetsTraites = make([]Sommet, len(listeSommets))
-
-	//ID sommet traité actuellement
-	//var idX	int	//id point x
-	//var idY	int	//id point y
 
 
 //Traitement
@@ -179,65 +169,41 @@ func dijkstra(graph [][]int, depart int, arrivee int) {
 	fmt.Println("\n")
 	fmt.Printf("Le chemin le plus court est : %v\n", bestWay)
 	fmt.Printf("La distance parcourue est : %e\n", listeSommets[arrivee].dist)
-
-	/*for {
-		fmt.Println(listeSommetsATraiter)
-		for  i := 0; i<len(listeSommetsATraiter); i++ {															//on parcours chaque sommet a traiter
-			idX = listeSommetsATraiter[i].id
-			for j := 0; j<len(listeSommetsATraiter); j++{															
-				if j != i && graph[i][j] != 0 && float64(graph[i][j]) <= listeSommetsATraiter[i].poids{
-					listeSommets[listeSommetsATraiter[i].id].poids = listeSommetsATraiter[i].poids
-					//listeSommetsATraiter[listeSommetsATraiter[i].id].poids = listeSommetsATraiter[i].poids
-					//listeSommetsDejaTraites = append(listeSommetsDejaTraites, listeSommetsATraiter[i])
-					listeSommetsATraiter = remove(listeSommetsATraiter, i)
-				}
-
-				for k := 0; k<len(listeSommets[idX].listeVoisins); k++{ 							//
-					for l := 0; l<len(listeSommetsATraiter); l++{
-						if listeSommets[idX].listeVoisins[k] == listeSommetsATraiter[l].id {
-							idY = listeSommetsATraiter[l].id
-							if listeSommets[idY].dist > listeSommets[idX].dist + float64(graph[idX][idY]) {
-								listeSommets[idY].dist = listeSommets[idX].dist + float64(graph[idX][idY])
-								listeSommets[idY].pred = idX
-							}
-							
-						}
-					}
-				}
-
-			}
-		}
-		if len(listeSommetsATraiter) == 0 {				//permet de sortir de la boucle lorsque la liste des sommets à traiter est vide
-			break
-		}
-	}*/
 }
 
-func readFile(fn string) (err error){
+
+
+func readFile(fn string) [][]int{
+	//ouverture du fichier
 	file, err := ioutil.ReadFile("graphe.txt")
 	if err != nil{
 		fmt.Println(err)
 	}
 
+	//récupération du graphe en format string
 	graphestr := string(file)
-	//fmt.Println(graphestr)
 
-	grapheln := strings.Split(graphestr, "\n")
-	nbSommets := len(grapheln)-1
+	ln := strings.Split(graphestr, "\n")				//traitement ligne par ligne
+
+	//graphe au format integer
+	nbSommets := len(ln)
+	graphe := make([][]int, nbSommets)
+
+	//conversion du graphe
 	for i := 0; i<nbSommets; i++{
-		graphenb := strings.Split(grapheln[i], "	")
+		nb := strings.Split(ln[i], "	")				//traitement valeur par valeur
+		graphe[i] = make([]int, nbSommets)
 		for j := 0; j<nbSommets; j++{
-			fmt.Printf("Str :%v", graphenb[j])
-			str := string(graphenb[j])
-			graphenbInt, _ := strconv.Atoi(str)
-			fmt.Printf("Valeur : %d\n", graphenbInt)
+			value_str := strings.Split(nb[j], "")		//récupération de la valeur seule, sans \r ou autres choses cachées 
+			value, _ := strconv.Atoi(value_str[1])		//la valeur qui nous intéresse se trouve en deuxième position du tableau value_str
+			graphe[i][j] = value
 		}
 	}
-	fmt.Println(nbSommets)
 	
-
-	return
+	return graphe
 }
+
+
 
 func main() {
 	const nbSommets int = 5
@@ -265,8 +231,7 @@ func main() {
 		}
 		fmt.Println("")
 	}
-	//grapheNoeuds := 
-	readFile("graphe.txt")
+	grapheNoeuds := readFile("graphe.txt")
 
-	dijkstra(grapheNoeudsOriginal, 0, 4)
+	dijkstra(grapheNoeuds/*Original*/, 0, 4)
 }
