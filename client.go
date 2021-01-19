@@ -133,7 +133,7 @@ func creerGrapheAleatoire(nbSommets int) [][]int{
 	for i := 0; i<nbSommets; i++{
 		for j := 0; j<nbSommets; j++{
 			if j != i{
-				var a = rand.Intn(5)
+				var a = rand.Intn(20)
 				if j >= i {
 					graphe[i][j] = a
 				} else {

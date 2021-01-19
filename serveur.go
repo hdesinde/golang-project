@@ -36,7 +36,6 @@ func handleConnection(connection  net.Conn, connum int) {
 	
 	connReader := bufio.NewReader(connection)
 	inputLine, err := connReader.ReadString('x')
-	fmt.Println(inputLine)
 
 	if err != nil && err != io.EOF{
 		fmt.Printf("Error", err.Error())
