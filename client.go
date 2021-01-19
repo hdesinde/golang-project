@@ -8,7 +8,9 @@ import (
 	"bufio"
 	"io/ioutil"
 	"io"
-	"time"
+	//"time"
+	//"strings"
+	//"log"
 )
 
 func getArgs() int {
@@ -31,46 +33,58 @@ func getArgs() int {
 	return -1
 }
 
-func handleConnection(connection  net.Conn) {
+func handleConnection(connection  net.Conn, ecoute int) {
 	
 	defer connection.Close()
 	fmt.Printf("#DEBUG MAIN Connected\n")
-	fmt.Println("SELECT MODE : \n1 - Random graph\n2 - Read file")
-	
-	//declare un reader pour lire un input dans la console
-	var input int
-	var selectionErrorWarning = false
-	//var inputErrorWarning = false
+	if ecoute == 0{
+		fmt.Println("SELECT MODE : \n1 - Random graph\n2 - Read file")
+		
+		//declare un reader pour lire un input dans la console
+		var input int
+		var selectionErrorWarning = false
+		//var inputErrorWarning = false
 
-	//définit ce qui se passe en fonction de l'input
-	for {
-		//lit un input de l'utilisateur
-		fmt.Scan(&input)
-	    if (input == 1){
-	    	/*fmt.Println("Construction et envoi d'un graphe aléatoire")
-	    	fmt.Println("SELECT NODE QUANTITY :")
-    		fmt.Scan(&nbSommets)
-	    	graphe := menuRandomGraph(nbSommets)
-	    	io.WriteString(conn, graphe )
-	    	break*/
-	    	fmt.Println("non implémenté pour l'instant")
-	    } else if (input == 2){
-	    	fmt.Println("Envoie du fichier graphe.txt")
-	    	graphe := readFile( "test")
-			io.WriteString(connection, graphe )
-	    	break
-	    } else {
-	    	if (selectionErrorWarning != true){
-	    		fmt.Println("ERROR. PLEASE SELECT ONE OF THE OPTIONS ABOVE.")
-	    		selectionErrorWarning = false
-	    	}
-	    }
+		//définit ce qui se passe en fonction de l'input
+		for {
+			//lit un input de l'utilisateur
+			fmt.Scan(&input)
+			if (input == 1){
+				/*fmt.Println("Construction et envoi d'un graphe aléatoire")
+				fmt.Println("SELECT NODE QUANTITY :")
+				fmt.Scan(&nbSommets)
+				graphe := menuRandomGraph(nbSommets)
+				io.WriteString(conn, graphe )
+				break*/
+				fmt.Println("non implémenté pour l'instant")
+			} else if (input == 2){
+				fmt.Println("Envoie du fichier graphe.txt")
+				graphe := readFile( "graphe.txt")
+				io.WriteString(connection, graphe)
+				break
+			} else {
+				if (selectionErrorWarning != true){
+					fmt.Println("ERROR. PLEASE SELECT ONE OF THE OPTIONS ABOVE.")
+					selectionErrorWarning = false
+				}
+			}
+		}
+	}else if ecoute == 1{
+		fmt.Println("Après le time.sleep(100)")
+		Reader := bufio.NewReader(connection)
+		fmt.Println("Après le NewReader")
+		inputLine, err := Reader.ReadString('x')
+		fmt.Println("Après le ReadString")
+		fmt.Println(inputLine)
+
+		if err != nil && err != io.EOF{
+			fmt.Printf("Error", err.Error())
+		}
 	}
-
-
-	time.Sleep(1000)
-	reader := bufio.NewReader(connection)
-	fmt.Println(reader)
+		
+	
+	//reader := bufio.NewReader(connection)
+	//fmt.Println(reader)
 
 }
 
@@ -79,7 +93,7 @@ func main() {
 
 	port := getArgs()
 	
-	portString := fmt.Sprintf("10.18.2.72:%s", strconv.Itoa(port))
+	portString := fmt.Sprintf("192.168.144.21:%s", strconv.Itoa(port))
 
 	conn, err := net.Dial("tcp", portString)
 	if err != nil {
@@ -87,7 +101,14 @@ func main() {
 		os.Exit(1)
 	} else {
 		// ici on rajoute ce qu'on veut envoyer 
-		handleConnection(conn)
+		handleConnection(conn, 0)
+		conn, err := net.Dial("tcp", portString)
+		if err != nil {
+			fmt.Printf("#DEBUG MAIN could not connect\n")
+			os.Exit(1)
+		}else{
+			handleConnection(conn, 1)
+		}
 	}
 }
 

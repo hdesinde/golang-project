@@ -11,7 +11,8 @@ import (
 	"strings"
 	//"time"
 	"bufio"
-	//"io"
+	"io"
+	"sync"
 )
 
 func getArgs() int {
@@ -37,18 +38,45 @@ func handleConnection(connection  net.Conn, connum int) {
 	
 	connReader := bufio.NewReader(connection)
 	inputLine, err := connReader.ReadString('x')
-	if err != nil {
+	fmt.Println(inputLine)
+
+	if err != nil && err != io.EOF{
 		fmt.Printf("Error", err.Error())
 	}
 	graphe := readGraphe(string(inputLine))
+	
 	//lancement des calculs grace à Dijkstra
-	for i := 0; i < len(graphe); i++{
-		for j := 0; j < len(graphe); j++{
-			go dijkstra(graphe,i,j)
-			//io.WriteString(connection, "trajet etudie entre" + i  + "et" + j + "\n")
-			//io.WriteString(connection, resultat)
+	res := make([][]string, len(graphe))
+	for i := 0; i<len(graphe); i++{
+		res[i] = make([]string, len(graphe))
+	}
+	var wg sync.WaitGroup
+	for i := 0; i < len(res); i++{
+		for j := 0; j < len(res[i]); j++{
+			if i != j{
+				wg.Add(1)						// Increment the WaitGroup counter
+				depart:=i
+				arrivee:=j
+				go func(){
+					defer wg.Done()				// Decrement the counter when the goroutine completes
+					res[depart][arrivee] = dijkstra(graphe,depart,arrivee)
+				}()
+			}
 		}
 	}
+	wg.Wait()
+	fmt.Println(res)
+
+	var result_str string
+	for i:=0; i<len(res); i++{
+		for j:=0; j<len(res[i]); j++{
+			result_str += res[i][j] + "    "
+		}
+		result_str += "\n"
+	}
+	fmt.Println(result_str)
+	//io.WriteString(connection, "trajet etudie entre" + string(i)  + "et" + string(j) + "\n")
+	io.WriteString(connection, result_str)
 }
 
 
@@ -99,7 +127,7 @@ func readGraphe(graphe string) [][]int{
 			grapheInt[i][j] = value
 		}
 	}
-	
+
 	return grapheInt
 }
 
@@ -121,7 +149,6 @@ func remove(slice []Sommet, s int) []Sommet {
 
 func dijkstra(graph [][]int, depart int, arrivee int) string{
 //Initialisation
-
 	//Liste des sommets
 	var listeSommets = make([]Sommet, len(graph))
 
@@ -263,12 +290,11 @@ func dijkstra(graph [][]int, depart int, arrivee int) string{
 	fmt.Printf("La distance parcourue est : %e\n", listeSommets[arrivee].dist)*/
 	
 	//et on renvoie le résultat dans un string
-	res  := "Le chemin le plus court est : [" + strconv.Itoa(bestWay[0])
+	res  := "[" + strconv.Itoa(bestWay[0])
 	for i:=1; i<len(bestWay); i++{
 		res += ";" + strconv.Itoa(bestWay[i])
 	}
-	res += "]\n"
-	res += "La distance parcourue est : " + strconv.FormatFloat(listeSommets[arrivee].dist, 'g', 1, 64)
+	res += "] d=" + strconv.FormatFloat(listeSommets[arrivee].dist, 'g', 1, 64)
 
 	return res
 }
