@@ -5,11 +5,9 @@ import (
 	"fmt"
 	"strconv"
 	"net"
-	//"math/rand"
 	"math"
-	//"io/ioutil"
+	"io/ioutil"
 	"strings"
-	//"time"
 	"bufio"
 	"io"
 	"sync"
@@ -65,18 +63,28 @@ func handleConnection(connection  net.Conn, connum int) {
 		}
 	}
 	wg.Wait()
-	fmt.Println(res)
 
 	var result_str string
 	for i:=0; i<len(res); i++{
+		result_str += fmt.Sprint("\r")
 		for j:=0; j<len(res[i]); j++{
-			result_str += res[i][j] + "    "
+			result_str += fmt.Sprint(res[i][j])
+			result_str += fmt.Sprint("	")
 		}
-		result_str += "\n"
+		result_str += fmt.Sprintln("")
 	}
-	fmt.Println(result_str)
-	//io.WriteString(connection, "trajet etudie entre" + string(i)  + "et" + string(j) + "\n")
-	io.WriteString(connection, result_str)
+
+	//Affichage du résultat dans un fichier resultat.txt
+	resultat := []byte(result_str)
+	err = ioutil.WriteFile("resultat.txt", resultat, 0644)
+	if err != nil{
+		panic(err)
+	}
+
+	 // sample process for string received  
+     msg_return := strings.ToUpper(result_str) 
+     // send new string back to client  
+     connection.Write([]byte(msg_return)) 
 }
 
 
@@ -84,8 +92,8 @@ func main() {
 	port := getArgs()   
 	portString :=fmt.Sprintf(":%s", strconv.Itoa(port)) //Creation du port string
 	ln, err := net.Listen("tcp", portString)
-	if err != nil {  // gestion des erreurs géneré par Listen
-		panic(err) // 
+	if err != nil {  // gestion des erreurs génerées par Listen
+		panic(err) 
 	}
 
 	// si sortie du if précedent, le programme n'a pas panic et ln est valide.
@@ -114,7 +122,7 @@ func readGraphe(graphe string) [][]int{
 	ln := strings.Split(graphe, "\n")				//traitement ligne par ligne
 
 	//graphe au format integer
-	nbSommets := len(ln)
+	nbSommets := len(ln)-1
 	grapheInt := make([][]int, nbSommets)
 
 	//conversion du graphe
@@ -123,7 +131,12 @@ func readGraphe(graphe string) [][]int{
 		grapheInt[i] = make([]int, nbSommets)
 		for j := 0; j<nbSommets; j++{
 			value_str := strings.Split(nb[j], "")		//récupération de la valeur seule, sans \r ou autres choses cachées 
-			value, _ := strconv.Atoi(value_str[1])		//la valeur qui nous intéresse se trouve en deuxième position du tableau value_str
+			var value int
+			if len(value_str) > 1{			//si nous sommes en lecture de fichier
+				value, _ = strconv.Atoi(value_str[1])		//la valeur qui nous intéresse se trouve en deuxième position du tableau value_str
+			}else if len(value_str) != 0{	//si nous sommes en graphe aléatoire
+				value, _ = strconv.Atoi(value_str[0])
+			}
 			grapheInt[i][j] = value
 		}
 	}
@@ -179,21 +192,15 @@ func dijkstra(graph [][]int, depart int, arrivee int) string{
 				listeSommetsATraiter[i].poids[j] = float64(graph[i][j])
 			}
 		}
-		/*fmt.Printf("Liste des voisins de %d", i)
-		fmt.Printf(" : %v\n", listeSommets[i].listeVoisins)
-		fmt.Printf("Liste des poids de %d", i)
-		fmt.Printf(" : %v\n", listeSommets[i].poids)*/
 	}
 	listeSommets[depart].dist = 0			//on assigne une distance nulle au sommet de départ 
 	listeSommetsATraiter[depart].dist = 0
-	//fmt.Println("")
 
 
 //Traitement
 
 	//Tant que la liste des sommets à traiter n'est pas vide, faire : 	
 	for{
-		//fmt.Printf("Liste des sommets à traiter : %v\n", listeSommetsATraiter)
 
 		//initialision des variables utiles 
 		min := math.Inf(1)
@@ -208,15 +215,9 @@ func dijkstra(graph [][]int, depart int, arrivee int) string{
 				indexListeATraiter = i					//important de conserver l'index du sommet dans la liste listeSommetsATraiter, pour y accéder plus tard
 			}
 		}
-		//fmt.Printf("min : %e\n", min)
-		//fmt.Printf("s1 : %d\n", s1)
 
 		//Mise à jour des distances 
-		/*fmt.Println("Avant la boucle")
-		fmt.Printf("listeVoisins : %v\n", listeSommets[s1].listeVoisins)
-		fmt.Printf("len(listeVoisins) : %d\n", len(listeSommets[s1].listeVoisins))*/
 		for i := 0; i<len(listeSommets[s1].listeVoisins); i++{
-			//fmt.Printf("i : %d\n", i)
 
 			s2 := listeSommets[s1].listeVoisins[i]
 
@@ -233,13 +234,7 @@ func dijkstra(graph [][]int, depart int, arrivee int) string{
 					}
 				}
 			}
-
-			/*fmt.Printf("s1 : %d\n", s1)
-			fmt.Printf("s2 : %d\n", s2)
-			fmt.Printf("pred s2 : %d\n", listeSommets[s2].pred)
-			fmt.Printf("dist s2 : %e\n", listeSommets[s2].dist)*/
 		}
-		//fmt.Println("Après la boucle\n")
 		
 		//enfin, on peut supprimer le sommet sur lequel nous nous trouvons de la liste des sommets encore à traiter
 		listeSommetsATraiter = remove(listeSommetsATraiter, indexListeATraiter)
@@ -251,8 +246,6 @@ func dijkstra(graph [][]int, depart int, arrivee int) string{
 
 
 //Traçage du chemin
-
-	//fmt.Printf("Liste des sommets : %v\n", listeSommets)
 
 	//meilleur chemin de l'arrivée au départ
 	var bestWayUpsideDown []int
@@ -285,9 +278,6 @@ func dijkstra(graph [][]int, depart int, arrivee int) string{
 	for i := 0; i<len(bestWay); i++{
 		bestWay[i] = bestWayUpsideDown[len(bestWayUpsideDown)-1-i]
 	}
-	/*fmt.Println("\n")
-	fmt.Printf("Le chemin le plus court est : %v\n", bestWay)
-	fmt.Printf("La distance parcourue est : %e\n", listeSommets[arrivee].dist)*/
 	
 	//et on renvoie le résultat dans un string
 	res  := "[" + strconv.Itoa(bestWay[0])

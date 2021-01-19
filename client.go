@@ -5,12 +5,9 @@ import (
 	"fmt"
 	"strconv"
 	"net"
-	"bufio"
 	"io/ioutil"
 	"io"
-	//"time"
-	//"strings"
-	//"log"
+	"math/rand"
 )
 
 func getArgs() int {
@@ -33,58 +30,50 @@ func getArgs() int {
 	return -1
 }
 
-func handleConnection(connection  net.Conn, ecoute int) {
+func handleConnection(connection  net.Conn) {
 	
 	defer connection.Close()
 	fmt.Printf("#DEBUG MAIN Connected\n")
-	if ecoute == 0{
-		fmt.Println("SELECT MODE : \n1 - Random graph\n2 - Read file")
+	fmt.Println("SELECT MODE : \n1 - Random graph\n2 - Read file")
 		
-		//declare un reader pour lire un input dans la console
-		var input int
-		var selectionErrorWarning = false
-		//var inputErrorWarning = false
+	//declare un reader pour lire un input dans la console
+	var input int
+	var selectionErrorWarning = false
 
-		//définit ce qui se passe en fonction de l'input
-		for {
-			//lit un input de l'utilisateur
-			fmt.Scan(&input)
-			if (input == 1){
-				/*fmt.Println("Construction et envoi d'un graphe aléatoire")
-				fmt.Println("SELECT NODE QUANTITY :")
-				fmt.Scan(&nbSommets)
-				graphe := menuRandomGraph(nbSommets)
-				io.WriteString(conn, graphe )
-				break*/
-				fmt.Println("non implémenté pour l'instant")
-			} else if (input == 2){
-				fmt.Println("Envoie du fichier graphe.txt")
-				graphe := readFile( "graphe.txt")
-				io.WriteString(connection, graphe)
-				break
-			} else {
-				if (selectionErrorWarning != true){
-					fmt.Println("ERROR. PLEASE SELECT ONE OF THE OPTIONS ABOVE.")
-					selectionErrorWarning = false
-				}
+	//définit ce qui se passe en fonction de l'input
+	for {
+		//lit un input de l'utilisateur
+		fmt.Scan(&input)
+		if (input == 1){
+			fmt.Println("Construction et envoi d'un graphe aléatoire")
+			fmt.Println("SELECT NODE QUANTITY :")
+			var nbSommets int
+			fmt.Scan(&nbSommets)
+			graphe := menuRandomGraph(nbSommets)
+			fmt.Println(graphe)
+			io.WriteString(connection, graphe)
+			break
+		} else if (input == 2){
+			fmt.Println("Envoie du fichier graphe.txt")
+			graphe := readFile( "graphe.txt")
+			io.WriteString(connection, graphe)
+			break
+		} else {
+			if (selectionErrorWarning != true){
+				fmt.Println("ERROR. PLEASE SELECT ONE OF THE OPTIONS ABOVE.")
+				selectionErrorWarning = false
 			}
 		}
-	}else if ecoute == 1{
-		fmt.Println("Après le time.sleep(100)")
-		Reader := bufio.NewReader(connection)
-		fmt.Println("Après le NewReader")
-		inputLine, err := Reader.ReadString('x')
-		fmt.Println("Après le ReadString")
-		fmt.Println(inputLine)
-
-		if err != nil && err != io.EOF{
-			fmt.Printf("Error", err.Error())
-		}
 	}
-		
-	
-	//reader := bufio.NewReader(connection)
-	//fmt.Println(reader)
+
+	/*time.Sleep(100)
+	Reader := bufio.NewReader(connection)
+	inputLine, err := Reader.ReadString('x')
+	fmt.Println(inputLine)
+
+	if err != nil && err != io.EOF{
+		fmt.Printf("Error", err.Error())
+	}*/
 
 }
 
@@ -101,14 +90,7 @@ func main() {
 		os.Exit(1)
 	} else {
 		// ici on rajoute ce qu'on veut envoyer 
-		handleConnection(conn, 0)
-		conn, err := net.Dial("tcp", portString)
-		if err != nil {
-			fmt.Printf("#DEBUG MAIN could not connect\n")
-			os.Exit(1)
-		}else{
-			handleConnection(conn, 1)
-		}
+		handleConnection(conn)
 	}
 }
 
@@ -124,17 +106,20 @@ func readFile(fn string ) string {
 	return graphestr
 }
 
-/*func menuRandomGraph(int nbSommets) {
+func menuRandomGraph(nbSommets int) string{
 
-    var grapheInit [][]string
+	var grapheInit [][]int
+	var res string
     grapheInit = creerGrapheAleatoire(nbSommets)
     for i := 0; i<len(grapheInit); i++{
-		for j := 0; j<len(grapheInit[0]); j++{
-			fmt.Print(grapheInit[i][j])
-			fmt.Print(" ")
+		res += fmt.Sprint("\r")
+		for j := 0; j<len(grapheInit[i]); j++{
+			res += fmt.Sprint(grapheInit[i][j])
+			res += fmt.Sprint("	")
 		}
-		fmt.Println("")
+		res += fmt.Sprintln("")
 	}
+	return res
 }
 
 func creerGrapheAleatoire(nbSommets int) [][]int{
@@ -157,11 +142,8 @@ func creerGrapheAleatoire(nbSommets int) [][]int{
 			}else{
 				graphe[i][j] = 0
 			} 
-			//fmt.Print(graphe[i][j])
-			//fmt.Print(" ")
 		}
-		//fmt.Println("")
 	}
 
 	return graphe
-}*/
+}
