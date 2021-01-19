@@ -26,7 +26,7 @@ func remove(slice []Sommet, s int) []Sommet {
 }
 
 // un noeud est représenté par une matrice d'adjacence (id : numéro colonne/ligne)
-func dijkstra(graph [][]int, depart int, arrivee int) {
+func dijkstra(graph [][]int, depart int, arrivee int) string{
 
 //Initialisation
 
@@ -60,21 +60,21 @@ func dijkstra(graph [][]int, depart int, arrivee int) {
 				listeSommetsATraiter[i].poids[j] = float64(graph[i][j])
 			}
 		}
-		fmt.Printf("Liste des voisins de %d", i)
+		/*fmt.Printf("Liste des voisins de %d", i)
 		fmt.Printf(" : %v\n", listeSommets[i].listeVoisins)
 		fmt.Printf("Liste des poids de %d", i)
-		fmt.Printf(" : %v\n", listeSommets[i].poids)
+		fmt.Printf(" : %v\n", listeSommets[i].poids)*/
 	}
 	listeSommets[depart].dist = 0			//on assigne une distance nulle au sommet de départ 
 	listeSommetsATraiter[depart].dist = 0
-	fmt.Println("")
+	//fmt.Println("")
 
 
 //Traitement
 
 	//Tant que la liste des sommets à traiter n'est pas vide, faire : 	
 	for{
-		fmt.Printf("Liste des sommets à traiter : %v\n", listeSommetsATraiter)
+		//fmt.Printf("Liste des sommets à traiter : %v\n", listeSommetsATraiter)
 
 		//initialision des variables utiles 
 		min := math.Inf(1)
@@ -89,15 +89,15 @@ func dijkstra(graph [][]int, depart int, arrivee int) {
 				indexListeATraiter = i					//important de conserver l'index du sommet dans la liste listeSommetsATraiter, pour y accéder plus tard
 			}
 		}
-		fmt.Printf("min : %e\n", min)
-		fmt.Printf("s1 : %d\n", s1)
+		//fmt.Printf("min : %e\n", min)
+		//fmt.Printf("s1 : %d\n", s1)
 
 		//Mise à jour des distances 
-		fmt.Println("Avant la boucle")
+		/*fmt.Println("Avant la boucle")
 		fmt.Printf("listeVoisins : %v\n", listeSommets[s1].listeVoisins)
-		fmt.Printf("len(listeVoisins) : %d\n", len(listeSommets[s1].listeVoisins))
+		fmt.Printf("len(listeVoisins) : %d\n", len(listeSommets[s1].listeVoisins))*/
 		for i := 0; i<len(listeSommets[s1].listeVoisins); i++{
-			fmt.Printf("i : %d\n", i)
+			//fmt.Printf("i : %d\n", i)
 
 			s2 := listeSommets[s1].listeVoisins[i]
 
@@ -115,12 +115,12 @@ func dijkstra(graph [][]int, depart int, arrivee int) {
 				}
 			}
 
-			fmt.Printf("s1 : %d\n", s1)
+			/*fmt.Printf("s1 : %d\n", s1)
 			fmt.Printf("s2 : %d\n", s2)
 			fmt.Printf("pred s2 : %d\n", listeSommets[s2].pred)
-			fmt.Printf("dist s2 : %e\n", listeSommets[s2].dist)
+			fmt.Printf("dist s2 : %e\n", listeSommets[s2].dist)*/
 		}
-		fmt.Println("Après la boucle\n")
+		//fmt.Println("Après la boucle\n")
 		
 		//enfin, on peut supprimer le sommet sur lequel nous nous trouvons de la liste des sommets encore à traiter
 		listeSommetsATraiter = remove(listeSommetsATraiter, indexListeATraiter)
@@ -133,7 +133,7 @@ func dijkstra(graph [][]int, depart int, arrivee int) {
 
 //Traçage du chemin
 
-	fmt.Printf("Liste des sommets : %v\n", listeSommets)
+	//fmt.Printf("Liste des sommets : %v\n", listeSommets)
 
 	//meilleur chemin de l'arrivée au départ
 	var bestWayUpsideDown []int
@@ -166,9 +166,19 @@ func dijkstra(graph [][]int, depart int, arrivee int) {
 	for i := 0; i<len(bestWay); i++{
 		bestWay[i] = bestWayUpsideDown[len(bestWayUpsideDown)-1-i]
 	}
-	fmt.Println("\n")
+	/*fmt.Println("\n")
 	fmt.Printf("Le chemin le plus court est : %v\n", bestWay)
-	fmt.Printf("La distance parcourue est : %e\n", listeSommets[arrivee].dist)
+	fmt.Printf("La distance parcourue est : %e\n", listeSommets[arrivee].dist)*/
+	
+	//et on renvoie le résultat dans un string
+	res  := "Le chemin le plus court est : [" + strconv.Itoa(bestWay[0])
+	for i:=1; i<len(bestWay); i++{
+		res += ";" + strconv.Itoa(bestWay[i])
+	}
+	res += "]\n"
+	res += "La distance parcourue est : " + strconv.FormatFloat(listeSommets[arrivee].dist, 'g', 1, 64)
+
+	return res
 }
 
 
@@ -226,10 +236,10 @@ func main() {
 			}else{
 				grapheNoeudsOriginal[i][j] = 0
 			} 
-			fmt.Print(grapheNoeudsOriginal[i][j])
-			fmt.Print(" ")
+			//fmt.Print(grapheNoeudsOriginal[i][j])
+			//fmt.Print(" ")
 		}
-		fmt.Println("")
+		//fmt.Println("")
 	}
 	grapheNoeuds := readFile("graphe.txt")
 
