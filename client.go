@@ -8,6 +8,8 @@ import (
 	"io/ioutil"
 	"io"
 	"math/rand"
+	"time"
+	"bufio"
 )
 
 func getArgs() int {
@@ -54,7 +56,7 @@ func handleConnection(connection  net.Conn) {
 			io.WriteString(connection, graphe)
 			break
 		} else if (input == 2){
-			fmt.Println("Envoie du fichier graphe.txt")
+			fmt.Println("Envoi du fichier graphe.txt")
 			graphe := readFile( "graphe.txt")
 			io.WriteString(connection, graphe)
 			break
@@ -66,14 +68,15 @@ func handleConnection(connection  net.Conn) {
 		}
 	}
 
-	/*time.Sleep(100)
+	time.Sleep(100)
+	fmt.Println("Après le sleep")
 	Reader := bufio.NewReader(connection)
 	inputLine, err := Reader.ReadString('x')
 	fmt.Println(inputLine)
 
 	if err != nil && err != io.EOF{
 		fmt.Printf("Error", err.Error())
-	}*/
+	}
 
 }
 
@@ -119,6 +122,7 @@ func menuRandomGraph(nbSommets int) string{
 		}
 		res += fmt.Sprintln("")
 	}
+	res += fmt.Sprint("x")
 	return res
 }
 

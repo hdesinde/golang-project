@@ -72,6 +72,7 @@ func handleConnection(connection  net.Conn, connum int) {
 		}
 		result_str += fmt.Sprintln("")
 	}
+	result_str += fmt.Sprint("x")
 
 	//Affichage du résultat dans un fichier resultat.txt
 	resultat := []byte(result_str)
